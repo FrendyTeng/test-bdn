@@ -1,0 +1,44 @@
+// Answer A
+SELECT t."transaction_no", c."email" "customer_email", t."amount", pc."name" "payment_channel_name", pp."name" "payment_provider_name", t."paid_at"
+FROM "transaction" t, "customer" c, "payment_channel" pc, "payment_provider" pp
+WHERE t."customer_id" = c."Id"
+AND t."payment_channel_code" = pc."code"
+AND t."payment_provide_code" = pp."code"
+AND t."status" = 'SUCCESS'
+AND t."paid_at" > now() - INTERVAL '1 DAYS';
+
+//Answer B
+SELECT pc."name"
+FROM "payment_channel" pc
+EXCEPT 
+SELECT DISTINCT pc."name"
+FROM "transaction" t, "payment_channel" pc
+WHERE t."payment_channel_code" = pc."code"
+AND t."created_at" > now() - INTERVAL '1 DAYS';
+
+// Answer C
+SELECT c."email" "customer_email", SUM(t."amount") "total_transaction_amount"
+FROM "transaction" t, "customer" c
+WHERE t."customer_id" = c."id"
+ORDER BY SUM(t."amount") desc, c."email" asc
+LIMIT 10
+
+// Answer D
+SELECT pf."payment_channel_code", pf."admin_fee" "cheapest_admin_fee", pp."name" "cheapest_payment_provider"
+FROM "payment_channel_provider_fee" pf, "payment_channel" pc, "payment_provider" pp
+WHERE pf."payment_channel_code" = pc."code"
+AND pf."payment_provider_code" = pp."code"
+ORDER BY pf."admin_fee" asc
+
+// Answer E
+Index has to be created in table "transaction" on column "transaction_no", "customer_id", "created_at", "paid_at"
+because in order to support operational activity it will make searching or query faster
+
+Pada Umumnya customer akan mencari berdasarkan "customer_id"-nya untuk melihat history transaksi
+Untuk keperluan support atau customer care, pencarian menggunakan "transaction_no" dan tanggal transaksi("created_at", "paid_at")
+juga dibutuhkan
+
+// Answer F
+1. In table "transaction", "transaction_no" is unique, "Id" also unique. In my opinion "transaction_no" can be replaced with "Id"
+2. In table "transaction", "item_name" "item_qty" "item_description" can be normalized to another table("table_item")
+
